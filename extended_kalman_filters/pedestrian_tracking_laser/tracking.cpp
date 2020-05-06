@@ -52,7 +52,7 @@ Tracking::~Tracking() {
 
 // Process a single measurement
 void Tracking::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
-  cout<<"Called\n";
+  
   if (!is_initialized_) {
     cout << "Kalman Filter Initialization " << endl;
 
@@ -69,30 +69,26 @@ void Tracking::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   // compute the time elapsed between the current and previous measurements
   // dt - expressed in seconds
-  cout<<"0\n";
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
   
   // TODO: YOUR CODE HERE
   // 1. Modify the F matrix so that the time is integrated
-  cout<<"1\n";
   kf_.F_(0,2) = dt;
   kf_.F_(1,3) = dt;
   
   // 2. Set the process covariance matrix Q
-  cout<<"2\n";
-  kf_.Q_<<(pow(dt,4)/4)*pow(noise_ax,2), 0, (pow(dt,3)/2)*pow(noise_ax,2), 0,
-        0, (pow(dt,4)/4)*pow(noise_ay,2), 0, (pow(dt,3)/2)*pow(noise_ay,2),
-        (pow(dt,3)/2)*pow(noise_ax,2), 0, pow(dt,2)*pow(noise_ax,2), 0,
-        0, (pow(dt,3)/2)*pow(noise_ay,2), 0, pow(dt,2)*pow(noise_ay,2);
+  kf_.Q_ = MatrixXd(4,4);
+  kf_.Q_<<(pow(dt,4)/4)*noise_ax, 0, (pow(dt,3)/2)*noise_ax, 0,
+        0, (pow(dt,4)/4)*noise_ay, 0, (pow(dt,3)/2)*noise_ay,
+        (pow(dt,3)/2)*noise_ax, 0, pow(dt,2)*noise_ax, 0,
+        0, (pow(dt,3)/2)*noise_ay, 0, pow(dt,2)*noise_ay;
   
   // 3. Call the Kalman Filter predict() function
-  cout<<"3\n";
   kf_.Predict();
   
   // 4. Call the Kalman Filter update() function
   //      with the most recent raw measurements_
-  cout<<"4\n";
   kf_.Update(measurement_pack.raw_measurements_);
   
   cout << "x_= " << kf_.x_ << endl;
