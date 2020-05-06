@@ -57,6 +57,7 @@ VectorXd CalculateRMSE(const vector<VectorXd> &estimations,
   //  * the estimation vector size should not be zero
   //  * the estimation vector size should equal ground truth vector size
   if(estimations.size()==0 || estimations.size()!=ground_truth.size()){
+  	std::cout<<"Invalid dimensions\n";
       return rmse;
   }
 
@@ -72,7 +73,7 @@ VectorXd CalculateRMSE(const vector<VectorXd> &estimations,
   }
 
   // TODO: calculate the mean
-  rmse = rmse.array()/estimations.size();
+  rmse = rmse/estimations.size();
 
   // TODO: calculate the squared root
   rmse = rmse.array().sqrt();
