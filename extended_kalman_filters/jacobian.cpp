@@ -43,16 +43,18 @@ MatrixXd CalculateJacobian(const VectorXd& x_state) {
   
   float dist_2 = px*px + py*py;
   float dist = sqrt(dist_2);
+  float dist_3 = pow(dist,3);
   
   // check division by zero
   if(dist==0){
-      return Hj;
+    std::cout<<"Division by zero in Jacobian matrix calculation\n"; 
+    return Hj;
   }
   
   // compute the Jacobian matrix
   Hj << px/dist, py/dist, 0, 0,
         -py/dist_2, px/dist_2, 0, 0,
-        py*(vx*py-vy*px)/pow(dist,3), px*(vy*px-vx*py)/pow(dist,3), px/dist, py/dist;
+        py*(vx*py-vy*px)/dist_3, px*(vy*px-vx*py)/dist_3, px/dist, py/dist;
         
   return Hj;
 }
