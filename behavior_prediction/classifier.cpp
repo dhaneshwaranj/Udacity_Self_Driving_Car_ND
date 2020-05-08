@@ -2,6 +2,7 @@
 #include <math.h>
 #include <string>
 #include <vector>
+#include <iostream>
 
 using Eigen::ArrayXd;
 using std::string;
@@ -82,6 +83,15 @@ void GNB::train(const vector<vector<double>> &data,
           keep_stddev += (ArrayXd::Map(data[i].data(),data[i].size()) - keep_mean).square();
       }
   }
+  left_stddev = (left_stddev/num_left).sqrt();
+  right_stddev = (right_stddev/num_right).sqrt();
+  keep_stddev = (keep_stddev/num_keep).sqrt();
+  
+  // Compute priors
+  float total = num_left+num_right+num_keep;
+  left_prior = num_left/total;
+  right_prior = num_right/total;
+  keep_prior = num_keep/total;
   
 }
 
@@ -97,8 +107,39 @@ string GNB::predict(const vector<double> &sample) {
    * TODO: Complete this function to return your classifier's prediction
    */
   
+  // Convert to Eigen::ArrayXd for easy manipulation
+  ArrayXd x = ArrayXd::Map(sample.data(), sample.size());
   
-  // Argmax -> find the maximum likilihood label
+  // Compute likelihoods of each label
+  float left_likelihood=0, right_likelihood=0, keep_likelihood=0;
   
-  return this -> possible_labels[1];
+  left_likelihood = ((1/(2*M_PI*left_stddev.square()).sqrt()) * 
+                        exp(-0.5*(x-left_mean).square() / left_stddev.square())).prod();
+                        
+  right_likelihood = ((1/(2*M_PI*right_stddev.square()).sqrt()) * 
+                        exp(-0.5*(x-right_mean).square() / right_stddev.square())).prod();
+                        
+  keep_likelihood = ((1/(2*M_PI*keep_stddev.square()).sqrt()) * 
+                        exp(-0.5*(x-keep_mean).square() / keep_stddev.square())).prod();                        
+  
+  
+  left_likelihood *= left_prior;
+  right_likelihood *= right_prior;
+  keep_likelihood *= keep_prior;
+  
+  // Find the maximum likilihood label
+  string label;
+  if(left_likelihood>=right_likelihood && left_likelihood>=keep_likelihood){
+      label = "left";
+  }
+  
+  else if(keep_likelihood>=right_likelihood && keep_likelihood>=left_likelihood){
+      label = "keep";
+  }
+  
+  else if(right_likelihood>=left_likelihood && right_likelihood>=keep_likelihood){
+      label = "right";
+  }
+  
+  return label;
 }
